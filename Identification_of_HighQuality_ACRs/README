@@ -1,1 +1,42 @@
+The code is to identify high-quality ACRs and their summits. Raw ACRs are first calculated by MACS2 and then filtered with the customer codes. The position in an ACR with highest Tn5 Integration sites is considered as summit.
+To run this script. MACS2, NCBI blast+ and BEDTools 2.26.0 are required.
+
+Step1 Identify raw ACRs with MACS2 and calculate the density.
+usage: sh 01_calculate_density.sh <output_name> <bin_size> <step> <genome_size> <path_to_sample_file> <path_to_input_file> 
+the parameter used in MACS2 is "macs2 callpeak -t ${sample[@]} -c ${input[@]} -g $size --keep-dup all --nomodel --extsize 147 -n $name"
+    <output_name>: this script will create a folder under the current path;
+    <bin_size>: the length to split each MACS2 peak;
+    <step>: the overlapped length between to windows(bins);
+    <genome_size>: the total length of the genome;
+    <path_to_sample files>: a .txt file including the path to the sample files, the sample should be in BED format;
+    <path_to_input files>: a .txt file including the path to the input files, the sample should be in BED format.
+
+Step2 Choose the density cutoff and filter the ACRs by removing regions similar with Organelle genome(s).
+usage: sh 02_choose_cutoff.sh <density_file> <cutoff> <merge-gaps> <peaks-length> <reps_counts> <genome_fasta> <NCBI_MtPt_Db> <name>
+    <density_file>: the output file from calculate_density step; 
+    <cutoff>: the density cutoff to choose for each bin;
+    <merge-gaps>: the maximum length allowed to merge nearby bins;
+    <peaks-length>: the minimum length of a peak;
+    <reps_counts>: sample replication number;
+    <genome_fasta>: PATH to the genome fasta file;
+    <NCBI_MtPt_Db>: PATH to the NCBI blast+ database of plant mitochondria and plastids (The sequences were downloaded from NCBI);
+    <name>: the name of the output peak files
+Step3 To call the summits, a tag directory containing Tn5 integration sites were generate.
+usage: sh 03_prepareTag.sh <output_tag_name> <chrom_info> <contig_prefix> <genome_size> <path_to_Tn5_sites> 
+    <output_tag_name>: this script will create a folder under current path;
+    <chrom_info>: a .txt file include the chromosome name;
+    <contig_prefix>: the prefix name of the contigs. If there're no contig, set it as <no>;
+    <genome_size>: the total length of the genome;
+    <path_to_Tn5_sites>: a .txt file including the path to the Tn5 integration file(s).
+
+Step4 Call the summits. The position with highest Tn5 Integration sites were considered as the summit(s).
+Usage: sh 04_call_summits.sh <output_folder_name> <peaks> <density-file> <tags> <chrom_info> <contig_prefix>
+"parrel" package is required.
+    <output_folder_name>: this script will create an folder under current path;
+    <peaks>: the output filtered peaks from choose_cutoff.sh, it should include three column, <chr> <start> <end> and it's 0 based;
+    <density-file>: the ouput *.density file from the calculate_density step;
+    <tag>: the output tag folder from prepareTag;
+    <chrom_info>: a .txt file include the chromosome name;
+    <contig_prefix>: the name of the contig prefix. If there're no contig, set it as <no>.
+ 
 
